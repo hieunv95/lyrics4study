@@ -1,0 +1,17 @@
+/node_modules
+/public/bower_components
+/public/storage
+/public/hot
+/public/css/
+/public/js/
+/public/images/
+/public/upload/
+/storage/*.key
+/vendor
+/.idea
+/public/fonts/
+/public/mix-manifest.json
+Homestead.json
+Homestead.yaml
+.env
+_ide_helper.php
