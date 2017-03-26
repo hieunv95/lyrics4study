@@ -16,25 +16,27 @@
                         <tr>
                             <th>Song</th>
                             <th>Artist</th>
-                            <th>Score</th>
-                            <th>Total</th>
-                            <th>Played at</th>
+                            <th>Played Times</th>
+                            <th>Last time played</th>
                         </tr>
-                        @foreach ($lyrics as $lyric)
+                        @foreach ($lyrics as $id => $lyric)
                         <tr>
                             <td>
                                 <a href="{{ route('show', [
-                                    'id' => $lyric->id,
-                                    'title' => str_slug($lyric->title,'-'),
-                                    'artist' => str_slug($lyric->artist,'-'),
+                                    'id' => $id,
+                                    'title' => str_slug($lyric[0]->title,'-'),
+                                    'artist' => str_slug($lyric[0]->artist,'-'),
                                 ])}}">
-                                    {{ $lyric->title }}
+                                    {{ $lyric[0]->title }}
                                 </a>
                             </td>
-                            <td>{{ $lyric->artist }}</td>
-                            <td>{{ $lyric->pivot->score }}</td>
-                            <td>{{ $lyric->pivot->total_word }}</td>
-                            <td>{{ $lyric->pivot->created_at->format('d-m-Y H:i:s') }}</td>
+                            <td>{{ $lyric[0]->artist }}</td>
+                            <td>
+                                <a href="{{ action('Web\UserController@detailHistory', $id) }}">
+                                    {{ $lyric->count() }}
+                                </a>
+                            </td>
+                            <td>{{ $lyric->last()->pivot->created_at->format('F jS, Y g:i:s A') }}</td>
                         </tr>
                         @endforeach
                     </table>

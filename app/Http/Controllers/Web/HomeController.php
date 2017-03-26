@@ -17,11 +17,11 @@ class HomeController extends Controller
 
     public function index()
     {
-        $top_lyrics = Lyric::paginate(3);
-        $new_lyrics = Lyric::orderBy('created_at', 'desc')->take(8)->get();
+        $topLyrics = Lyric::paginate(3);
+        $newLyrics = Lyric::orderBy('created_at', 'desc')->take(8)->get();
         return view('web.home')->with([
-            't_lyrics' => $top_lyrics,
-            'n_lyrics' => $new_lyrics,
+            't_lyrics' => $topLyrics,
+            'n_lyrics' => $newLyrics,
         ]);
     }
 

@@ -80,31 +80,23 @@ class LyricController extends Controller
     public function check(Request $req)
     {
         $num_words = $req->input('num_words');
-        $lyricId = $req->lyric_id;
-        $score = 0;
-        for ($i = 0; $i < $num_words; $i++) {
-            $user_answers[$i] = $req->input('usr_ans' .$i);
-            $answers[$i] = $req->input('ans' .$i);
-            if ($user_answers[$i] == $answers[$i]) {
-                $score++;
-            }
-        }
+        $lyricId = $req->input('lyric_id');
 
         DB::beginTransaction();
         try {
             if (Auth::check()) {
-                Auth::user()->lyrics()->attach($lyricId, ['score' => $score, 'total_word' => $num_words]);
+                Auth::user()->lyrics()->attach($lyricId, [
+                    'score' => $req->input('score'),
+                    'total_word' => $num_words
+                ]);
             }
 
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
+            return response('Submit failed', 500);
         }
 
-        return view('web.answer')->with([
-            'usr_ans' => $user_answers,
-            'ans' => $answers,
-            'num_words' => $num_words,
-        ]);
+        return response('Submit success', 200);
     }
 }

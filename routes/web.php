@@ -26,8 +26,9 @@ Route::group(['prefix' => 'lyrics'], function () {
     Route::get('play/{artist}/{title}/{id}/{level}', 'Web\LyricController@play');
     Route::post('check', 'Web\LyricController@check');
 });
-Route::group(['middleware' => 'auth'], function () {
-    Route::get('history', 'Web\UserController@history');
+Route::group(['prefix' => 'history', 'middleware' => 'auth'], function () {
+    Route::get('/', 'Web\UserController@history');
+    Route::get('/detail/{lyric_id}', 'Web\UserController@detailHistory');
 });
 Route::get('/test', function () {
 	return view('test');

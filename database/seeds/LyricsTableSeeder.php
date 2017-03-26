@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
+use App\Models\Lyric;
 
 class LyricsTableSeeder extends Seeder
 {
@@ -12,7 +13,7 @@ class LyricsTableSeeder extends Seeder
      */
     public function run()
     {
-
+        Lyric::truncate();
         $lyricsFile = storage_path('app\public\lyricsSample.txt');
         $lrc = explode("/", File::get($lyricsFile));
 
@@ -66,8 +67,10 @@ class LyricsTableSeeder extends Seeder
             'lyric' => $lrc[7],
           ],
         ];
-        
-        DB::table('lyrics')->insert($lyrics);
-        //factory(App\Lyric::class, 5)->create();
+
+        foreach ($lyrics as $lyric) {
+            Lyric::create($lyric);
+        }
+        //factory(App\Models\Lyric::class, 5)->create();
     }
 }

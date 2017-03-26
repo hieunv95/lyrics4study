@@ -13,4 +13,9 @@ class Lyric extends Eloquent
     {
         return $this->belongsToMany(User::class)->withTimestamps();
     }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->toDayDateTimeString();
+    }
 }
