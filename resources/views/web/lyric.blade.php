@@ -1,3 +1,4 @@
+{{ dd($x) }}
 @extends('layouts.web.myplay')
 
 @push('meta')

@@ -17,10 +17,10 @@ class LyricController extends Controller
 
     public function play($artist, $title, $id, $level)
     {
-        $lyric = Lyric::find($id);
+        $lyric = Lyric::findorFail($id);
 
-        $s = $lyric->lyric;
-        $s = (string) $s;
+        $initialLyric = $lyric->lyric;
+        $s = (string) $initialLyric;
 
         // Remove [..], (..), and symbol chars
         $s = preg_replace('~\([^()]*\)+~', '', $s);
@@ -65,13 +65,23 @@ class LyricController extends Controller
             $p = $position[$i];
             $answers[$i] = $s[$p];
             $num_chars = strlen($answers[$i]);
-            $s[$p] = '<input id="lrc_cell'.$i.'" class="cell" type="text" size="'.$num_chars.'" name="usr_ans'.$i.'">';
+            //$s[$p] = '<input id="lrc_cell'.$i.'" class="cell" type="text" size="'.$num_chars.'" name="usr_ans'.$i.'">';
         }
         $hidden_lyric = implode(' ', $s);
 
+        preg_match_all("/\[([^\]]*)\]/", $initialLyric, $timestamps);
+
+        $sentences = preg_split('/\[([^]]+)\]/', $initialLyric, -1, PREG_SPLIT_NO_EMPTY);
+        $sentences = array_map('rtrim', $sentences);
+        $split = function(&$value) {
+            return preg_split('/[\s]+/', $value, -1, PREG_SPLIT_NO_EMPTY);
+        };
+        $sentences = array_map($split, $sentences);
+
         return view('web.lyric')->with([
             'lyric' => $lyric,
-            'hid_lrc' => $hidden_lyric,
+            'x' => $sentences,
+            'timestamps' => $timestamps[1],
             'num_words' => $num_words,
             'answers' => $answers,
         ]);
