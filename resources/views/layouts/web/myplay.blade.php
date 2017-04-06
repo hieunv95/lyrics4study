@@ -37,6 +37,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
             'csrfToken' => csrf_token(),
         ]); ?>
 </script>
+@stack('css')
 </head>
 <body>
 @include('layouts.web.header')
@@ -79,7 +80,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
         });
     });
 </script>
-    @yield('js')
+@stack('js')
     <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
   </body>
 </html>

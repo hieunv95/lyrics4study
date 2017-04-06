@@ -20,70 +20,91 @@ class LyricController extends Controller
         $lyric = Lyric::findorFail($id);
 
         $initialLyric = $lyric->lyric;
-        $s = (string) $initialLyric;
+        //$s = (string) $initialLyric;
 
         // Remove [..], (..), and symbol chars
-        $s = preg_replace('~\([^()]*\)+~', '', $s);
-        $s = preg_replace('~\[[^\]]*\]+~', '', $s);
-        $s = preg_replace('/[^\p{L}\p{N}\s\']/u', '', $s);
+        // $s = preg_replace('~\([^()]*\)+~', '', $s);
+        // $s = preg_replace('~\[[^\]]*\]+~', '', $s);
+        // $s = preg_replace('/[^\p{L}\p{N}\s\']/u', '', $s);
 
         //Convert string to array by splitting space char
-        $s = preg_split('/[\s]+/', $s, -1, PREG_SPLIT_NO_EMPTY);
+        //$s = preg_split('/[\s]+/', $s, -1, PREG_SPLIT_NO_EMPTY);
 
-        $array = range(0, count($s) - 1);
+        $sentences = convertSRTFormatToArray($initialLyric);
+        $sentenceIndexes = range(0, count($sentences) - 1);
 
         if ($level == 'easy') {
-            $lvl = 0.2;
+            $rate = 0.1;
         } elseif ($level == 'medium') {
-            $lvl = 0.3;
+            $rate = 0.25;
         } else {
-            $lvl = 0.5;
+            $rate = 0.5;
         }
-        //Number of hidden words
-        $num_words = round($lvl*count($s));
 
-        //Random positions of hidden words
-        for ($i = 0; $i < $num_words; $i++) {
-            shuffle($array);
-            $position[$i] = $array[0];
-            array_splice($array, 0, 1);
+        $wordTotal = 0;
+        foreach ($sentences as $sentence) {
+            $wordTotal += count($sentence->fullWords);
         }
+
+        $hiddenWordTotal = round($rate*$wordTotal);
+        $hiddenWordCount = 0;
+        while ($hiddenWordCount < $hiddenWordTotal) {
+            shuffle($sentenceIndexes);
+            $sentenceIndex = $sentenceIndexes[0];
+            $sentence = $sentences[ $sentenceIndex ];
+            $words = $sentence->fullWords;
+            $remainHiddenWordNo = $hiddenWordTotal - $hiddenWordCount;
+            $averageHiddenWordNo = ceil($rate*count($words));
+            $hiddenWordNumber = ($remainHiddenWordNo < $averageHiddenWordNo)
+                ? $remainHiddenWordNo
+                : $averageHiddenWordNo;
+            $hiddenWordIndexes = array_rand($words, $hiddenWordNumber);
+            if (!is_array($hiddenWordIndexes)) {
+                $hiddenWordIndexes = (array) $hiddenWordIndexes;
+            }
+
+            foreach ($hiddenWordIndexes as $i) {
+                $sentence->lackWords[$i] = '<input class="sentence s_' . $sentenceIndex. '" data-wordid="' . $i .'" data-sentenceid="' .$sentenceIndex. '">';
+            }
+
+            array_splice($sentenceIndexes, 0, 1);
+            $hiddenWordCount += $hiddenWordNumber;
+        }
+
+        //dd($sentences);
 
         //Arrange positions incrementally
-        for ($i = 0; $i < $num_words; $i++) {
-            for ($j = $num_words - 1; $j > $i; $j--) {
-                if ($position[$j] < $position[$j - 1]) {
-                    $tmp = $position[$j];
-                    $position[$j] = $position[$j - 1];
-                    $position[$j - 1] = $tmp;
-                }
-            }
-        }
+        // for ($i = 0; $i < $num_words; $i++) {
+        //     for ($j = $num_words - 1; $j > $i; $j--) {
+        //         if ($position[$j] < $position[$j - 1]) {
+        //             $tmp = $position[$j];
+        //             $position[$j] = $position[$j - 1];
+        //             $position[$j - 1] = $tmp;
+        //         }
+        //     }
+        // }
 
         //Replace hidden words with input tag
-        for ($i = 0; $i < $num_words; $i++) {
-            $p = $position[$i];
-            $answers[$i] = $s[$p];
-            $num_chars = strlen($answers[$i]);
-            //$s[$p] = '<input id="lrc_cell'.$i.'" class="cell" type="text" size="'.$num_chars.'" name="usr_ans'.$i.'">';
-        }
-        $hidden_lyric = implode(' ', $s);
+        // for ($i = 0; $i < $num_words; $i++) {
+        //     $p = $position[$i];
+        //     $answers[$i] = $s[$p];
+        //     $num_chars = strlen($answers[$i]);
+        //     //$s[$p] = '<input id="lrc_cell'.$i.'" class="cell" type="text" size="'.$num_chars.'" name="usr_ans'.$i.'">';
+        // }
+        // $hidden_lyric = implode(' ', $s);
 
-        preg_match_all("/\[([^\]]*)\]/", $initialLyric, $timestamps);
+        // preg_match_all("/\[([^\]]*)\]/", $initialLyric, $timestamps);
 
-        $sentences = preg_split('/\[([^]]+)\]/', $initialLyric, -1, PREG_SPLIT_NO_EMPTY);
-        $sentences = array_map('rtrim', $sentences);
-        $split = function(&$value) {
-            return preg_split('/[\s]+/', $value, -1, PREG_SPLIT_NO_EMPTY);
-        };
-        $sentences = array_map($split, $sentences);
+        // $sentences = preg_split('/\[([^]]+)\]/', $initialLyric, -1, PREG_SPLIT_NO_EMPTY);
+        // $sentences = array_map('rtrim', $sentences);
+        // $split = function(&$value) {
+        //     return preg_split('/[\s]+/', $value, -1, PREG_SPLIT_NO_EMPTY);
+        // };
+        // $sentences = array_map($split, $sentences);
 
-        return view('web.lyric')->with([
+        return view('web.lyric.show')->with([
             'lyric' => $lyric,
-            'x' => $sentences,
-            'timestamps' => $timestamps[1],
-            'num_words' => $num_words,
-            'answers' => $answers,
+            'sentences' => $sentences,
         ]);
     }
 

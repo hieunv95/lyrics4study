@@ -1,4 +1,3 @@
-{{ dd($x) }}
 @extends('layouts.web.myplay')
 
 @push('meta')
@@ -134,7 +133,7 @@ input.cell {
 </div>
 @endsection
 
-@section('js')
+@push('js')
 <script>
     $(document).ready(function () {
         window.fbAsyncInit = function() {
@@ -232,4 +231,4 @@ input.cell {
         }, function(response){});
     });
 </script>
-@endsection
+@endpush
