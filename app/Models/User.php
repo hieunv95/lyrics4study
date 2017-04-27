@@ -29,7 +29,12 @@ class User extends Authenticatable
 
     public function lyrics()
     {
-        return $this->belongsToMany(Lyric::class)->withTimestamps()->withPivot('score', 'total_word', 'created_at');
+        return $this->belongsToMany(Lyric::class)->withTimestamps()->withPivot('score', 'level', 'created_at');
+    }
+
+    public function lyrics_created()
+    {
+        return $this->hasMany(Lyric::class, 'user_id');
     }
 
 }

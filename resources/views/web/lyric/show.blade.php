@@ -8,7 +8,7 @@
         position: relative;
         padding-bottom: 56.25%;
         /*padding-top: 25px;*/
-        height: 0;
+        /*height: 0;*/
     }
     .videowrapper iframe {
         position: absolute;
@@ -18,27 +18,85 @@
         height: 70%;
     }
     .lyric-player {
-        font-size: medium;
+        font-size: large;
+        text-align: center;
+    }
+    input.sentence {
+        height: 35px;
+        border: none;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+    }
+    input.sentence:focus {
+        outline-width: 0;
+    }
+    #first-sentence {
+       margin-bottom: 20px;
+    }
+    .btn-skip, .btn-repeat, .btn-result {
+        color: white;
+        font-weight: bold;
+        background-color: #5bc0de;
+    }
+    .btn-result {
+        display: none;
+    }
+    .highlight-word {
+        color: #5bc0de;
+        font-weight: bold;
+    }
+    .wrong-input {
+        color: red;
+    }
+    b#score {
+        color: #5bc0de;
     }
 </style>
 @endpush
 @section('content')
 <div class="show-top-grids">
-    <div class="col-sm-8 single-left">
-        <div class="videowrapper">
+    <div class="col-sm-10 single-left">
+        <div class="videowrapper song">
             <div class="song-info">
                 <h3 class="song-meta">{{ $lyric->title }} - {{ $lyric->artist }}</h3>
-                <input type="hidden" class="song-thumbnail"
-                    value="https://i3.ytimg.com/vi/{{ $lyric->link_id }}/hqdefault.jpg">
+                <form action="{{ action("Web\UserController@saveScore") }}" method="POST" class="lyric-meta-form">
+                    {{ csrf_field() }}
+                    <input type="hidden" class="song-thumbnail"
+                        value="https://i3.ytimg.com/vi/{{ $lyric->link_id }}/hqdefault.jpg">
+                    <input type="hidden" name="lyric_id" class="lyric-id" value="{{ $lyric->id }}">
+                    <input type="hidden" name="level" class="level" value="{{ $level }}">
+                </form>
             </div>
             <div class="video-grid" id="video-player" data-videoid="{{ $lyric->link_id }}"></div>
         </div>
-        <div class="clearfix"> </div>
-        <div class="published">
-            <div class="load_more">
-                <div id="lyric-player" class="lyric-player">
-                    <div id="first-sentence"></div>
-                    <div id="second-sentence"></div>
+        <div id="lyric-player" class="lyric-player">
+            <div id="first-sentence"></div>
+            <div id="second-sentence"></div>
+        </div>
+        <div>
+            <button class="btn btn-repeat pull-left">Repeat</button>
+            <button class='btn btn-skip pull-right'>Skip</button>
+            <button type="button" class="btn btn-result pull-right" data-toggle="modal"
+                data-target=".modal-result" data-url="{{ action("Web\UserController@saveScore") }}">Result
+            </button>
+        </div>
+        <div class="modal modal-result fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Results</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h3>Your score: <b id="score"></b> points</h3>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#" class="btn btn-primary fb-share-result" data-url="{{ Request::fullUrl() }}">
+                            Share on Facebook
+                        </a>
+                        {{-- <button type="button" class="btn btn-info" data-dismiss="modal">Close</button> --}}
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,8 +108,38 @@
 @push('js')
 <script>
     $(document).ready(function () {
+        var lyricContent = $('#lyric-player')[0];
+        MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+
+        var observer = new MutationObserver(function(mutations, observer) {
+            mutations.forEach(function(mutation) {
+                //console.log(mutation.type);
+                $('#lyric-player :input:enabled:visible:first').focus();
+            });
+        });
+
+        // define what element should be observed by the observer
+        // and what types of mutations trigger the callback
+        observer.observe(lyricContent, {
+          childList: true,
+          subtree: true,
+          //attributes: true,
+          characterData: true
+          //...
+        });
     });
     var sentences = {!! json_encode($sentences) !!}
+    var currentSentence, i = paused = replay = score = 0;
+    var sentenceNumber = sentences.length;
+    var timers = [];
+    var complete = [];
+    for (var k = 0; k < sentenceNumber; k++) {
+        complete[k] = 0;
+    }
+    var level = $('.lyric-meta-form .level').val();
+    if (level == 0) {
+        $('.btn-repeat, .btn-skip').css('display', 'none');
+    }
 
     var tag = document.createElement('script');
 
@@ -72,7 +160,7 @@
                 'fs': 0,
                 'disablekb' : 0,
                 'iv_load_policy': 3,
-                'start' : 20,
+                'start' : 23,
             },
             events: {
                 'onReady': onPlayerReady,
@@ -85,176 +173,342 @@
         event.target.playVideo();
     }
 
-    var i = 0;
-    var paused = 0;
-    var sentenceNumber = sentences.length;
-    var complete = new Array(sentenceNumber);
-    for (var k = 0; k < sentenceNumber; k++) {
-        complete[k] = 0;
-    }
-
     function Timer(callback, delay) {
-        var id, started, remaining = delay, running
+        var id, started, remaining = delay, running;
 
         this.resume = function() {
-            running = true
-            started = new Date()
-            window.clearTimeout(id)
-            id = setTimeout(callback, remaining)
+            running = true;
+            started = new Date();
+            window.clearTimeout(id);
+            id = setTimeout(callback, remaining);
         }
 
         this.pause = function() {
-            running = false
-            window.clearTimeout(id)
-            remaining -= new Date() - started
+            running = false;
+            window.clearTimeout(id);
+            remaining -= new Date() - started;
         }
 
         this.getRemaining = function() {
             if (running) {
-                this.pause()
-                this.resume()
+                this.pause();
+                this.resume();
             }
 
-            return remaining
+            return remaining;
         }
 
         this.getStateRunning = function() {
-            return running
+            return running;
         }
 
-        this.resume()
+        this.resume();
     }
-    var timer, timer1, timer2, timer3, interval;
+
+    function isExist(x) {
+        return (typeof x != "undefined") ? true : false;
+    }
+
+    function hasTimeLeft(timer) {
+        return (isExist(timer) && timer.getRemaining() > 0) ? true : false;
+    }
+
+    function hasTimer() {
+        var i;
+        for (i = 0; i < 5; i++) {
+            if (hasTimeLeft(timers[i])) {
+                timers[i].resume();
+                //console.log('r' + i);
+                if (hasTimeLeft(timers[6])) {
+                    timers[6].resume();
+                }
+
+                if (hasTimeLeft(timers[5])) {
+                    timers[5].resume();
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function setTimeoutToPause(timerIndex, timeout, sentenceIndex) {
+        var i = timerIndex;
+
+        if (isExist(timers[i])) {
+            timers[i].pause();
+            timers[i] = null;
+        }
+
+        timers[i] = new Timer(function () {
+            pauseVideo(sentenceIndex);
+        }, timeout);
+    }
+
+    function setTimeoutToAnimate(timerIndex, timeout, sentenceIndex) {
+        var i = timerIndex;
+
+        if (isExist(timers[i])) {
+            timers[i].pause();
+        }
+
+        timers[i] = new Timer(function () {
+            animateWord(sentenceIndex);
+        }, timeout);
+    }
+
+    function pauseTimers() {
+        timers.forEach(function (timer) {
+            if (isExist(timer)) {
+                timer.pause();
+                //console.log('pause');
+            }
+        });
+    }
+
+    var cc = 0;
+    function animateWord(sentenceIndex) {
+        var sentence = sentences[sentenceIndex];
+        var wordTotal = sentence.lackWords.length;
+        var duration = sentence.lackWords[cc]['duration'];
+
+        $('#w_'+ sentenceIndex + cc).addClass('highlight-word');
+        cc++;
+        if (cc >= wordTotal) {
+            cc = 0;
+            return;
+        }
+
+        setTimeoutToAnimate(5, duration, sentenceIndex);
+    }
+
+    function replaySentence(i) {
+        replay = 1;
+        paused = 0;
+        complete[i] = 1;
+        //console.log('s' + i);
+        pauseTimers();
+        player.seekTo(sentences[i].start / 1000, true);
+        player.playVideo();
+        //pauseTimers();
+
+        cc = 0;
+        animateWord(i);
+        setTimeoutToPause(4, sentences[i].end - sentences[i].start, i);
+
+        if (++i < sentenceNumber) {
+            setTimeoutToAnimate(6, sentences[i].start - sentences[i - 1].start, i);
+            setTimeoutToPause(3, sentences[i].end - sentences[i - 1].start, i);
+        }
+    }
+
+    function joinWords(sentenceIndex) {
+        return sentences[sentenceIndex].lackWords.map(function(word) {
+            return word.word;
+        }).join(" ");
+    }
+
+    function isCorrect(input, i) {
+        return (input.val().toUpperCase() != sentences[i].fullWords[input.data('wordid')]['word'].toUpperCase())
+            ? false
+            : true;
+    }
+
     function onPlayerStateChange(event) {
         if (event.data == YT.PlayerState.PLAYING) {
             if (paused == 1) {
                 player.pauseVideo();
-            } else if (typeof timer != "undefined" && timer.getRemaining() > 0) {
-                timer.resume();
-                console.log('timer');
-            } else if (typeof timer1 != "undefined" && timer1.getRemaining() > 0) {
-                timer1.resume();
-                console.log('timer1');
-            } else if (typeof timer2 != "undefined" && timer2.getRemaining() > 0) {
-                timer2.resume();
-                console.log('timer2');
-            } else if (typeof timer3 != "undefined" && timer3.getRemaining() > 0) {
-                timer3.resume();
-                console.log('timer3');
+            } else if (hasTimer()) {
+                return;
             } else {
                 interval = setInterval(function () {
-                    var currentTime = player.getCurrentTime();
+                    var currentTime = 1000 * player.getCurrentTime();
                         if (i < sentenceNumber && sentences[i].start <= currentTime && currentTime <= sentences[i].end
-                            && (complete[i-1] == 1 || i == 0)) {
-                            console.log('0');
-                            let index = i;
+                            && (complete[i - 1] == 1 || i == 0) && replay == 0) {
+                            //console.log('0');
                             var timeout = (i == 0)
                                 ? (sentences[i].end - sentences[i].start)
                                 : (sentences[i].end - sentences[i - 1].end);
-                            if (typeof timer != "undefined") {
-                                timer.pause();
-                            }
+                            setTimeoutToPause(0, timeout, i);
+                            $('#first-sentence').html(joinWords(i));
+                            cc = 0;
+                            animateWord(i);
 
-                            timer = new Timer(function () {
-                                pauseVideo(index);
-                            }, 1000*(timeout));
-                            $('#first-sentence').html(sentences[i++].lackWords.join(" "));
-                            if (i < sentenceNumber) {
-                                $('#second-sentence').html(sentences[i++].lackWords.join(" "));
+                            if (++i < sentenceNumber) {
+                                $('#second-sentence').html(joinWords(i));
+                                setTimeoutToAnimate(6, sentences[i].start - sentences[i - 1].start, i);
+                                i++;
                             }
                         }
                 }, 1);
             }
         }
+
         if (event.data == YT.PlayerState.PAUSED) {
-            if (typeof timer != "undefined") {
-                console.log('ptimer');
-                timer.pause();
+            pauseTimers();
+            if (paused == 1) {
+                score--;
+                console.log(score);
             }
-            if (typeof timer1 != "undefined") {
-                console.log('ptimer1');
-                timer1.pause();
-            }
-            if (typeof timer2 != "undefined") {
-                console.log('ptimer2');
-                timer2.pause();
-            }
-            if (typeof timer3 != "undefined") {
-                console.log('ptimer3');
-                timer3.pause();
-            }
+        }
+
+        // if (event.data == YT.PlayerState.ENDED && i++ == sentenceNumber && level > 0) {
+        if (event.data == YT.PlayerState.ENDED) {
+            $('.btn-repeat, .btn-skip').css('display', 'none');
+            $('.btn-result').css('display', 'block').click();
+            displayResult();
+
+            var lyricForm = $('.lyric-meta-form');
+            var data = lyricForm.serializeArray();
+            data.push({name: 'score', value: (score > 0) ? score : 0});
+            $.post(lyricForm.attr('action'), data);
         }
     }
 
-    function pauseVideo(index) {
-        var i = index;
+    function pauseVideo(i) {
         if ($('.s_' + i).length) {
-            console.log('1');
-            let inputNumber = rightInputNumber = 0;
+            //console.log('1');
+            var inputNumber = rightInputNumber = 0;
             $('.s_' + i).each(function () {
+                var $this = $( this );
                 inputNumber++;
-                console.log(sentences[i].fullWords[$( this ).data('wordid')]);
-                if ($( this ).val() != sentences[i].fullWords[$( this ).data('wordid')]) {
-                    paused = 1;
-                    player.pauseVideo();
+                console.log(sentences[i].fullWords[$this.data('wordid')]['word']);
+                if (!isCorrect($this, i)) {
+                    //paused = replay = 1;
+                    currentSentence = i;
+                    var timeoutToPause;
+                    var timeoutToMute;
+                    if (i + 1 < sentenceNumber && 1000 * player.getCurrentTime() + 1000 < sentences[i + 1].end) {
+                        timeoutToPause = 1000;
+                        timeoutToMute = 150;
+                    } else {
+                        timeoutToPause = 100;
+                        timeoutToMute = 15;
+                    }
+                    var volume = 100;
+                    var decreaseVolume = setInterval(function () {
+                        volume -= 10;
+                        player.setVolume(volume);
+                    }, timeoutToMute);
+                    setTimeout(function () {
+                        player.pauseVideo();
+                        paused = replay = 1;
+                        clearInterval(decreaseVolume);
+                        player.setVolume(100);
+                    }, timeoutToPause);
+
+                    return false;
                 } else {
                     rightInputNumber++;
                 }
             });
             if (rightInputNumber == inputNumber) {
-                paused = 0;
+                paused = replay = 0;
                 complete[i] = 1;
-                i++;
-                if (i < sentenceNumber) {
-                    if (typeof timer1 != "undefined") {
-                        timer1.pause();
-                    }
-                    timer1 = new Timer(function () {
-                        pauseVideo(i);
-                    }, 1000*(sentences[i].end - sentences[i-1].end));
+                if (++i < sentenceNumber) {
+                    setTimeoutToPause(1, sentences[i].end - sentences[i - 1].end, i);
                 }
             }
         } else {
-            console.log('2');
-            paused = 0;
+            //console.log('2');
+            paused = replay = 0;
             complete[i] = 1;
-            i++;
-            if (i < sentenceNumber) {
-                if (typeof timer2 != "undefined") {
-                    timer2.pause();
-                }
-                timer2 = new Timer(function () {
-                    pauseVideo(i);
-                }, 1000*(sentences[i].end - sentences[i-1].end));
+            if (++i < sentenceNumber) {
+                setTimeoutToPause(2, sentences[i].end - sentences[i - 1].end, i);
             }
         }
     }
 
-    $('#lyric-player').on("keyup",'.sentence', function(){
-        let i = $(this).data('sentenceid');
-        let inputNumber = rightInputNumber = 0;
+    function displayResult() {
+        $('.modal-result #score').html(score);
+    }
+
+    $('#lyric-player').on("keyup", '.sentence', function() {
+        var $this = $( this );
+        var i = $this.data('sentenceid');
+        var wordId = $this.data('wordid');
+        var input = $this.data('input');
+        var inputNumber = rightInputNumber = 0;
+        var inputLength = $this.val().length;
+        var maxLength = $this.attr('maxlength');
+
+        if (inputLength == maxLength && !isCorrect($this, i)) {
+            // score--;
+            // console.log(score);
+            $this.addClass('wrong-input');
+        } else {
+            $this.removeClass('wrong-input');
+        }
+
         $('.s_' + i).each(function () {
+            var $this = $( this );
             inputNumber++;
-            if ($( this ).val() == sentences[i].fullWords[$( this ).data('wordid')]) {
+            if (isCorrect($this, i)) {
                 rightInputNumber++;
+                if (!$this.prop('disabled')) {
+                    score += $this.val().length;
+                    console.log(score);
+                    $this.parent().nextAll('span').find('input').first().focus();
+                    $this.prop('disabled', true);
+                }
             }
         });
-        if (player.getPlayerState() == 2 && inputNumber == rightInputNumber && (complete[i-1] == 1 || i == 0)) {
-            player.playVideo();
-            // player.seekTo(sentences[i].start, true);
-            paused = 0;
-            complete[i] = 1;
-            i++;
-            if (i < sentenceNumber) {
-                if (typeof timer3 != "undefined") {
-                    timer3.pause();
-                }
-                timer3 = new Timer(function () {
-                    console.log('3');
-                    pauseVideo(i);
-                }, 1000*(sentences[i].end - sentences[i-1].end));
-            }
+
+        if (isCorrect($this, i) && input == inputNumber) {
+            $('#lyric-player :input:enabled:visible:first').focus();
         }
+
+        if (player.getPlayerState() == 2 && inputNumber == rightInputNumber && (complete[i - 1] == 1 || i == 0)) {
+            replaySentence(i);
+        }
+    });
+
+    $('.btn-skip').click(function () {
+        if (player.getPlayerState() == 2 && paused == 1) {
+            var i = currentSentence;
+            score--;
+            console.log(score);
+            $('.s_' + i).each(function () {
+                var $this = $( this );
+                $this.val(sentences[i].fullWords[$this.data('wordid')]['word']);
+                if (!$this.prop('disabled')) {
+                    $this.removeClass('wrong-input');
+                    $this.prop('disabled', true);
+                }
+            });
+            replaySentence(i);
+            $('#lyric-player :input:enabled:visible:first').focus();
+        }
+    });
+
+    $('.btn-repeat').click(function () {
+        if (player.getPlayerState() == 2 && paused == 1) {
+            score--;
+            console.log(score);
+            replaySentence(currentSentence);
+            $('#lyric-player :input:enabled:visible:first').focus();
+        }
+    });
+
+    $('.btn-result').click(function () {
+        displayResult();
+    });
+
+    $('#lyric-player').on('keydown', 'input', function(e) {
+        if (e.keyCode == 32) return false;
+    });
+
+    $('.fb-share-result').click(function() {
+        FB.ui({
+            method: 'share',
+            display: 'popup',
+            href: $(this).data('url'),
+            picture: $('.song-thumbnail').val(),
+            title: 'You won ' + score + ' points',
+            description: 'Learning English with the lyrics of ' + $('.song-meta').html(),
+        }, function(response){});
     });
 </script>
 @endpush

@@ -7,7 +7,7 @@
     }
 </style>
 <div class="panel-group">
-    <div class="col-sm-8 single-left">
+    <div class="col-sm-10 single-left">
         <div class="panel panel-primary">
             <div class="panel-heading"><h4>History</h4></div>
             <div class="panel-body">
@@ -27,10 +27,10 @@
                                     'title' => str_slug($lyric[0]->title,'-'),
                                     'artist' => str_slug($lyric[0]->artist,'-'),
                                 ])}}">
-                                    {{ $lyric[0]->title }}
+                                    <b>{{ $lyric[0]->title }}</b>
                                 </a>
                             </td>
-                            <td>{{ $lyric[0]->artist }}</td>
+                            <td><b>{{ $lyric[0]->artist }}</b></td>
                             <td>
                                 <a href="{{ action('Web\UserController@detailHistory', $id) }}">
                                     {{ $lyric->count() }}

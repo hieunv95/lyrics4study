@@ -109,7 +109,7 @@
 </div>
 @endsection
 
-@section('js')
+@push('js')
 <script src="myplay/js/responsiveslides.min.js"></script>
 <script>
 // You can also use "$(window).load(function() {"
@@ -132,5 +132,5 @@ $(function() {
 });
 </script>
 
-@endsection
+@endpush
 

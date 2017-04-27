@@ -26,10 +26,20 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <!-- fonts -->
 <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 <link href='//fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
 <!-- //fonts -->
 <style>
     .ui-widget {
         font-size: 1.5em;
+    }
+    .btn-user-name {
+        background-color: Transparent;
+        background-repeat:no-repeat;
+        border: none;
+        cursor: pointer;
+        overflow: hidden;
+        outline: none;
+        font-weight: bold;
     }
 </style>
 <script>
@@ -62,6 +72,23 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <script src="/js/laroute.js"></script>
 <script type="text/javascript">
     $(document).ready(function (e) {
+        window.fbAsyncInit = function() {
+            FB.init({
+              appId      : 1226236657472789,
+              xfbml      : true,
+              version    : 'v2.8'
+            });
+            FB.AppEvents.logPageView();
+        };
+
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
         var $f = $('.footer').outerHeight(true);
         $('.content').css('min-height', "calc(100vh - " + $f + "px)");
         $("#q").autocomplete({
@@ -77,6 +104,16 @@ License URL: http://creativecommons.org/licenses/by/3.0/
             var concept = $(this).text();
             $('.search-panel span#search_concept').text(concept);
             $('.input-group #search_param').val(param);
+        });
+        $('.fb-share-lyric').click(function() {
+            FB.ui({
+                method: 'share',
+                display: 'popup',
+                href: $(this).data('url'),
+                picture: $('.song-thumbnail').val(),
+                title: $('.song-meta').html(),
+                description: 'Lyrics4Study - Learning English with lyrics',
+            }, function(response){});
         });
     });
 </script>

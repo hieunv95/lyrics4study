@@ -19,25 +19,25 @@
                             'title' => str_slug($lyrics[0]->title,'-'),
                             'artist' => str_slug($lyrics[0]->artist,'-'),
                         ])}}">
-                            {{ $lyrics[0]->title }}
+                            <b>{{ $lyrics[0]->title }}</b>
                         </a>
                     </li>
                     <li>
                         Artist:
-                       {{ $lyrics[0]->artist }}
+                       <b>{{ $lyrics[0]->artist }}</b>
                     </li>
                 </ul>
                 <div class="table-responsive">
                     <table class="table">
                         <tr>
                             <th>Score</th>
-                            <th>Total</th>
+                            <th>Level</th>
                             <th>Played at</th>
                         </tr>
                         @foreach ($lyrics as $lyric)
                         <tr>
                             <td>{{ $lyric->pivot->score }}</td>
-                            <td>{{ $lyric->pivot->total_word }}</td>
+                            <td>{{ levelToString($lyric->pivot->level) }}</td>
                             <td>{{ $lyric->pivot->created_at->format('F jS, Y - g:i:s A') }}</td>
                         </tr>
                         @endforeach

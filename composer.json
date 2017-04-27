@@ -12,7 +12,8 @@
         "algolia/algoliasearch-client-php": "^1.14",
         "elasticsearch/elasticsearch": "2.2",
         "lord/laroute": "2.*",
-        "laravel/socialite": "2.0.*"
+        "laravel/socialite": "2.0.*",
+        "doctrine/dbal": "^2.5"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

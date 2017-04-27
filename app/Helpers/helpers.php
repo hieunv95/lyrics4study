@@ -49,12 +49,22 @@ function convertSRTFormatToArray($lines) {
                 if (trim($line) == '') {
                     $sub = new stdClass;
                     list($startTime, $endTime) = array_pad(explode(' --> ', $subTime, 2), 2, null);
-                    $sub->start = toSeconds($startTime);
-                    $sub->end = toSeconds($endTime);
+                    $sub->start = toMilliseconds($startTime);
+                    $sub->end = toMilliseconds($endTime);
                     $subWords = preg_replace('/^\s+|\s+$|\s+(?=\s)/', '', $subWords);
                     $subWords = preg_replace('/[^\p{L}\p{N}\s\']/u', '', $subWords);
-                    $sub->fullWords = preg_split('/[\s]+/', $subWords, -1, PREG_SPLIT_NO_EMPTY);
-                    $sub->lackWords = $sub->fullWords;
+                    $charNumber = strlen(preg_replace('/\s+/', '', $subWords));
+                    $subWords = preg_split('/[\s]+/', $subWords, -1, PREG_SPLIT_NO_EMPTY);
+                    $fullWords = [];
+                    $averageDuration = ($sub->end - $sub->start) / $charNumber;
+                    foreach ($subWords as $key => $word) {
+                        $fullWords[$key] = [
+                            'word' => $word,
+                            'duration' => $averageDuration * strlen($word),
+                        ];
+                    }
+
+                    $sub->fullWords = $sub->lackWords = $fullWords;
                     $subWords = '';
                     $state = SRT_STATE_SUBNUMBER;
 
@@ -69,8 +79,22 @@ function convertSRTFormatToArray($lines) {
     return $subs;
 }
 
-function toSeconds(string $time): float
-    {
-        list($hour, $minute, $second) = explode(':', $time);
-        return (int)$hour * 3600 + (int)$minute * 60 + floatval(str_replace(',', '.', $second));
+function toMilliseconds(string $time): float
+{
+    list($hour, $minute, $second) = explode(':', $time);
+    list($second, $millisecond) = explode(',', $second);
+    return ((int)$hour * 3600 + (int)$minute * 60 + (int)$second) * 1000 + $millisecond;
+}
+
+function levelToString($level)
+{
+    if ($level == 1) {
+        return "Easy";
+    } elseif ($level == 2) {
+        return "Medium";
+    } elseif ($level == 3) {
+        return "Hard";
+    } else {
+        return "Expert";
     }
+}

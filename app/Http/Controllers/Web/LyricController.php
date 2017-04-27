@@ -15,6 +15,16 @@ class LyricController extends Controller
         return view('web.level', compact('artist', 'title', 'id'));
     }
 
+    public function create()
+    {
+        return view('web.lyric.create');
+    }
+
+    public function save(Request $request)
+    {
+        return;
+    }
+
     public function play($artist, $title, $id, $level)
     {
         $lyric = Lyric::findorFail($id);
@@ -31,22 +41,38 @@ class LyricController extends Controller
         //$s = preg_split('/[\s]+/', $s, -1, PREG_SPLIT_NO_EMPTY);
 
         $sentences = convertSRTFormatToArray($initialLyric);
+        //dd($sentences);
         $sentenceIndexes = range(0, count($sentences) - 1);
 
-        if ($level == 'easy') {
+        if ($level == 'karaoke') {
+            $rate = 0;
+            $level = 0;
+        } elseif($level == 'easy') {
             $rate = 0.1;
-        } elseif ($level == 'medium') {
+            $level = 1;
+        } else if ($level == 'medium') {
             $rate = 0.25;
-        } else {
+            $level = 2;
+        } else if ($level == 'hard') {
             $rate = 0.5;
+            $level = 3;
+        } else if ($level == 'expert') {
+            $rate = 1;
+            $level = 4;
+        } else {
+            abort('404');
         }
 
         $wordTotal = 0;
-        foreach ($sentences as $sentence) {
+        foreach ($sentences as $sentenceIndex => $sentence) {
             $wordTotal += count($sentence->fullWords);
+            foreach ($sentence->lackWords as $wordId => $word) {
+                $sentence->lackWords[$wordId]['word'] = '<span id="w_' . $sentenceIndex . $wordId . '">'
+                    .$word['word']. '</span>';
+            }
         }
 
-        $hiddenWordTotal = round($rate*$wordTotal);
+        $hiddenWordTotal = round($rate * $wordTotal);
         $hiddenWordCount = 0;
         while ($hiddenWordCount < $hiddenWordTotal) {
             shuffle($sentenceIndexes);
@@ -54,7 +80,7 @@ class LyricController extends Controller
             $sentence = $sentences[ $sentenceIndex ];
             $words = $sentence->fullWords;
             $remainHiddenWordNo = $hiddenWordTotal - $hiddenWordCount;
-            $averageHiddenWordNo = ceil($rate*count($words));
+            $averageHiddenWordNo = ceil($rate * count($words));
             $hiddenWordNumber = ($remainHiddenWordNo < $averageHiddenWordNo)
                 ? $remainHiddenWordNo
                 : $averageHiddenWordNo;
@@ -63,8 +89,17 @@ class LyricController extends Controller
                 $hiddenWordIndexes = (array) $hiddenWordIndexes;
             }
 
+            $input = 1;
             foreach ($hiddenWordIndexes as $i) {
-                $sentence->lackWords[$i] = '<input class="sentence s_' . $sentenceIndex. '" data-wordid="' . $i .'" data-sentenceid="' .$sentenceIndex. '">';
+                $charNumber = strlen($sentence->fullWords[$i]['word']);
+                $dotPlaceholder = '';
+                for ($j = 0; $j < $charNumber; $j++) {
+                    $dotPlaceholder .= '&bull;';
+                }
+                $sentence->lackWords[$i]['word'] = '<span id="w_'. $sentenceIndex . $i . '">
+                    <input class="sentence s_'.$sentenceIndex.'"
+                    data-wordid="'.$i.'" data-sentenceid="'.$sentenceIndex.'" data-input="'.$input++.'"
+                    size="'.$charNumber.'" maxlength="'.$charNumber.'" placeholder="'.$dotPlaceholder.'"></span>';
             }
 
             array_splice($sentenceIndexes, 0, 1);
@@ -105,29 +140,7 @@ class LyricController extends Controller
         return view('web.lyric.show')->with([
             'lyric' => $lyric,
             'sentences' => $sentences,
+            'level' => $level,
         ]);
-    }
-
-    public function check(Request $req)
-    {
-        $num_words = $req->input('num_words');
-        $lyricId = $req->input('lyric_id');
-
-        DB::beginTransaction();
-        try {
-            if (Auth::check()) {
-                Auth::user()->lyrics()->attach($lyricId, [
-                    'score' => $req->input('score'),
-                    'total_word' => $num_words
-                ]);
-            }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response('Submit failed', 500);
-        }
-
-        return response('Submit success', 200);
     }
 }

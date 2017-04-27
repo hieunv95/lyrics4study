@@ -80,7 +80,7 @@ class HomeController extends Controller
         }
 
         return view('web.search')->with([
-            'results' => $results,
+            'list' => $results,
             'search' => $search,
         ]);
     }

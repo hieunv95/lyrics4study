@@ -46,13 +46,16 @@
         <div class="side-bottom">
             <div class="side-bottom-icons">
                 <ul class="nav2">
+                    <li>
+                        <a href="#" class="facebook twitter fb-share-lyric" data-url="{{ Request::fullUrl() }}">
+                        </a>
+                    </li>
                     <li><a href="#" class="facebook"> </a></li>
-                    <li><a href="#" class="facebook twitter"> </a></li>
                     <li><a href="#" class="facebook chrome"> </a></li>
                 </ul>
             </div>
             <div class="copyright">
-                <p>Copyright © 2015 My Play. All Rights Reserved | Design by <a href="http://w3layouts.com/">W3layouts</a></p>
+                <p>Copyright © 2017. All Rights Reserved <a href="http://w3layouts.com/"></a></p>
             </div>
         </div>
     </div>
