@@ -96,8 +96,9 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'yt_video_id' => [
+            'required' => 'The :attribute in this link is not available.',
+            'unique' => 'Lyrics of this :attribute has already been created or published.',
         ],
     ],
 
@@ -112,6 +113,8 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'yt_video_id' => 'Youtube video',
+    ],
 
 ];

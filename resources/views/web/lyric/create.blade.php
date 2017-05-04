@@ -8,6 +8,10 @@
     .recommended {
         width: 60%;
     }
+    .input-group-btn {
+        position: relative;
+        white-space: nowrap;
+    }
 </style>
 @endpush
 @section('content')
@@ -15,13 +19,23 @@
     <div class="recommended">
         <div class="recommended-grids">
             <div class="recommended-info">
-                <h3>Create Lyrics Form</h3>
+                <h3>Add Lyrics</h3>
             </div>
+            @if (count($errors) > 0)
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="form-section">
                 {{ Form::open([
                     'action' => 'Web\LyricController@save',
                     'method' => 'POST',
-                    'class' => 'form form-create-lyrics form-horizontal'
+                    'class' => 'form form-create-lyrics form-horizontal',
+                    'files' => 'true',
                 ]) }}
                     <div class="form-group">
                         {{ Form::label('title', 'Title', [
@@ -43,9 +57,16 @@
                         {{ Form::label('yt_link', 'Youtube Link', [
                             'class' => 'control-label'
                         ]) }}
-                        {{ Form::text('yt_link', '', [
-                            'class' => 'form-control'
-                        ]) }}
+                        <div class="input-group">
+                            {{ Form::text('yt_link', '', [
+                                'class' => 'form-control'
+                            ]) }}
+                            <span class="input-group-btn">
+                                {{ Form::button('Check link', [
+                                    'class' => 'btn btn-info btn-check-yt-link'
+                                ]) }}
+                            </span>
+                        </div>
                     </div>
                     <div class="form-group">
                         {{ Form::label('lyric_file', 'Lyric File', [
@@ -57,7 +78,7 @@
                     </div>
                     <div class="form-group">
                         {{ Form::submit('Save', [
-                            'class' => 'btn btn-info'
+                            'class' => 'btn btn-info btn-save-lyrics'
                         ]) }}
                     </div>
                 {{ Form::close() }}

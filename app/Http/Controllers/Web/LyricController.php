@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Lyric;
 use Auth;
 use DB;
+use App\Http\Requests\StoreLyric;
 
 class LyricController extends Controller
 {
@@ -20,9 +21,9 @@ class LyricController extends Controller
         return view('web.lyric.create');
     }
 
-    public function save(Request $request)
+    public function save(StoreLyric $request)
     {
-        return;
+        return back()->withInput();
     }
 
     public function play($artist, $title, $id, $level)
