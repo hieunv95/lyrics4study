@@ -95,7 +95,6 @@
                         <a href="#" class="btn btn-primary fb-share-result" data-url="{{ Request::fullUrl() }}">
                             Share on Facebook
                         </a>
-                        {{-- <button type="button" class="btn btn-info" data-dismiss="modal">Close</button> --}}
                     </div>
                 </div>
             </div>
@@ -118,18 +117,14 @@
             });
         });
 
-        // define what element should be observed by the observer
-        // and what types of mutations trigger the callback
         observer.observe(lyricContent, {
           childList: true,
           subtree: true,
-          //attributes: true,
           characterData: true
-          //...
         });
     });
     var sentences = {!! json_encode($sentences) !!}
-    var currentSentence, i = paused = replay = score = 0;
+    var currentSentence, checked, i = paused = replay = score = 0;
     var sentenceNumber = sentences.length;
     var timers = [];
     var complete = [];
@@ -160,7 +155,7 @@
                 'fs': 0,
                 'disablekb' : 0,
                 'iv_load_policy': 3,
-                'start' : 23,
+                'start' : 9,
             },
             events: {
                 'onReady': onPlayerReady,
@@ -170,7 +165,7 @@
     }
 
     function onPlayerReady(event) {
-        event.target.playVideo();
+        //event.target.playVideo();
     }
 
     function Timer(callback, delay) {
@@ -209,37 +204,32 @@
         return (typeof x != "undefined") ? true : false;
     }
 
-    function hasTimeLeft(timer) {
+    function hasPositiveRemaining(timer) {
         return (isExist(timer) && timer.getRemaining() > 0) ? true : false;
     }
 
-    function hasTimer() {
+    function hasTimerToPause() {
         var i;
-        for (i = 0; i < 5; i++) {
-            if (hasTimeLeft(timers[i])) {
-                timers[i].resume();
-                //console.log('r' + i);
-                if (hasTimeLeft(timers[6])) {
-                    timers[6].resume();
-                }
-
-                if (hasTimeLeft(timers[5])) {
-                    timers[5].resume();
-                }
-
-                return true;
+        for (i = 0; i < 3; i++) {
+            if (hasPositiveRemaining(timers[i])) {
+                return i;
             }
         }
 
-        return false;
+        return -1;
     }
 
     function setTimeoutToPause(timerIndex, timeout, sentenceIndex) {
-        var i = timerIndex;
+        var i = timerIndex, j;
+
+        for (j = 0; j < 3; j++) {
+            if (isExist(timers[j])) {
+                timers[j].pause();
+            }
+        }
 
         if (isExist(timers[i])) {
             timers[i].pause();
-            timers[i] = null;
         }
 
         timers[i] = new Timer(function () {
@@ -260,12 +250,21 @@
     }
 
     function pauseTimers() {
-        timers.forEach(function (timer) {
-            if (isExist(timer)) {
-                timer.pause();
-                //console.log('pause');
+        var i;
+        for (i = 0; i < 7; i++) {
+            if (isExist(timers[i])) {
+                timers[i].pause();
             }
-        });
+        }
+    }
+
+    function resumeTimer() {
+        var i;
+        for (i = 3; i < 7; i++) {
+            if (hasPositiveRemaining(timers[i])) {
+                timers[i].resume();
+            }
+        }
     }
 
     var cc = 0;
@@ -287,12 +286,9 @@
     function replaySentence(i) {
         replay = 1;
         paused = 0;
-        complete[i] = 1;
-        //console.log('s' + i);
         pauseTimers();
         player.seekTo(sentences[i].start / 1000, true);
         player.playVideo();
-        //pauseTimers();
 
         cc = 0;
         animateWord(i);
@@ -320,49 +316,54 @@
         if (event.data == YT.PlayerState.PLAYING) {
             if (paused == 1) {
                 player.pauseVideo();
-            } else if (hasTimer()) {
-                return;
             } else {
-                interval = setInterval(function () {
-                    var currentTime = 1000 * player.getCurrentTime();
-                        if (i < sentenceNumber && sentences[i].start <= currentTime && currentTime <= sentences[i].end
+                resumeTimer();
+                var timerIndex = hasTimerToPause();
+                if (timerIndex >= 0) {
+                    timers[timerIndex].resume();
+                }
+            }
+            setInterval(function () {
+                //console.log('t');
+                var currentTime = 1000 * player.getCurrentTime();
+                    if (i < sentenceNumber && sentences[i].start <= currentTime && currentTime <= sentences[i].end
                             && (complete[i - 1] == 1 || i == 0) && replay == 0) {
-                            //console.log('0');
+                        if (hasTimerToPause() < 0) {
                             var timeout = (i == 0)
                                 ? (sentences[i].end - sentences[i].start)
                                 : (sentences[i].end - sentences[i - 1].end);
-                            setTimeoutToPause(0, timeout, i);
-                            $('#first-sentence').html(joinWords(i));
-                            cc = 0;
-                            animateWord(i);
 
-                            if (++i < sentenceNumber) {
-                                $('#second-sentence').html(joinWords(i));
-                                setTimeoutToAnimate(6, sentences[i].start - sentences[i - 1].start, i);
-                                i++;
-                            }
+                            setTimeoutToPause(0, timeout, i);
                         }
-                }, 1);
-            }
+                        $('#first-sentence').html(joinWords(i));
+                        cc = 0;
+                        animateWord(i);
+
+                        if (++i < sentenceNumber) {
+                            $('#second-sentence').html(joinWords(i));
+                            setTimeoutToAnimate(6, sentences[i].start - sentences[i - 1].start, i);
+                            i++;
+                        }
+                    }
+            }, 1);
         }
 
         if (event.data == YT.PlayerState.PAUSED) {
             pauseTimers();
             if (paused == 1) {
                 score--;
-                console.log(score);
             }
         }
 
-        // if (event.data == YT.PlayerState.ENDED && i++ == sentenceNumber && level > 0) {
-        if (event.data == YT.PlayerState.ENDED) {
+        if (event.data == YT.PlayerState.ENDED && i++ == sentenceNumber && level > 0) {
+            score = (score > 0) ? score : 0;
             $('.btn-repeat, .btn-skip').css('display', 'none');
             $('.btn-result').css('display', 'block').click();
             displayResult();
 
             var lyricForm = $('.lyric-meta-form');
             var data = lyricForm.serializeArray();
-            data.push({name: 'score', value: (score > 0) ? score : 0});
+            data.push({name: 'score', value: score});
             $.post(lyricForm.attr('action'), data);
         }
     }
@@ -376,25 +377,32 @@
                 inputNumber++;
                 console.log(sentences[i].fullWords[$this.data('wordid')]['word']);
                 if (!isCorrect($this, i)) {
-                    //paused = replay = 1;
+                    checked = 1;
                     currentSentence = i;
                     var timeoutToPause;
                     var timeoutToMute;
-                    if (i + 1 < sentenceNumber && 1000 * player.getCurrentTime() + 1000 < sentences[i + 1].end) {
+                    if (i + 1 < sentenceNumber && 1000 * (player.getCurrentTime() + 1) < sentences[i + 1].end) {
                         timeoutToPause = 1000;
-                        timeoutToMute = 150;
+                        timeoutToMute = 100;
                     } else {
                         timeoutToPause = 100;
-                        timeoutToMute = 15;
+                        timeoutToMute = 10;
                     }
                     var volume = 100;
                     var decreaseVolume = setInterval(function () {
                         volume -= 10;
                         player.setVolume(volume);
                     }, timeoutToMute);
-                    setTimeout(function () {
+
+                    if (isExist(timers[7])) {
+                        timers[7].pause();
+                    }
+                    timers[7] = new Timer(function () {
                         player.pauseVideo();
                         paused = replay = 1;
+                    }, timeoutToPause);
+
+                    timers[8] = new Timer(function () {
                         clearInterval(decreaseVolume);
                         player.setVolume(100);
                     }, timeoutToPause);
@@ -412,7 +420,7 @@
                 }
             }
         } else {
-            //console.log('2');
+            console.log(player.getCurrentTime());
             paused = replay = 0;
             complete[i] = 1;
             if (++i < sentenceNumber) {
@@ -435,8 +443,6 @@
         var maxLength = $this.attr('maxlength');
 
         if (inputLength == maxLength && !isCorrect($this, i)) {
-            // score--;
-            // console.log(score);
             $this.addClass('wrong-input');
         } else {
             $this.removeClass('wrong-input');
@@ -449,7 +455,6 @@
                 rightInputNumber++;
                 if (!$this.prop('disabled')) {
                     score += $this.val().length;
-                    console.log(score);
                     $this.parent().nextAll('span').find('input').first().focus();
                     $this.prop('disabled', true);
                 }
@@ -460,16 +465,27 @@
             $('#lyric-player :input:enabled:visible:first').focus();
         }
 
-        if (player.getPlayerState() == 2 && inputNumber == rightInputNumber && (complete[i - 1] == 1 || i == 0)) {
-            replaySentence(i);
+        if (inputNumber == rightInputNumber && (complete[i - 1] == 1 || i == 0) && checked == 1) {
+            complete[i] = 1;
+            checked = 0;
+            if (isExist(timers[7])) {
+                timers[7].pause();
+            }
+            if (player.getPlayerState() == 2 && paused == 1) {
+                replaySentence(i);
+            } else  {
+                if (++i < sentenceNumber) {
+                    setTimeoutToPause(1, sentences[i].end - sentences[i - 1].end, i);
+                }
+            }
         }
     });
 
     $('.btn-skip').click(function () {
+        complete[i] = 1;
         if (player.getPlayerState() == 2 && paused == 1) {
             var i = currentSentence;
             score--;
-            console.log(score);
             $('.s_' + i).each(function () {
                 var $this = $( this );
                 $this.val(sentences[i].fullWords[$this.data('wordid')]['word']);
@@ -486,7 +502,6 @@
     $('.btn-repeat').click(function () {
         if (player.getPlayerState() == 2 && paused == 1) {
             score--;
-            console.log(score);
             replaySentence(currentSentence);
             $('#lyric-player :input:enabled:visible:first').focus();
         }
