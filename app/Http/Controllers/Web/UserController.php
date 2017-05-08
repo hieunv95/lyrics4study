@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Auth;
 use DB;
 use App\Models\User;
+use App\Models\Lyric;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
@@ -34,25 +35,30 @@ class UserController extends Controller
         ]);
     }
 
-    public function saveScore(Request $req)
+    public function saveScore(Request $request)
     {
-        $level = $req->input('level');
-        $lyricId = $req->input('lyric_id');
-        $score = $req->input('score');
+        $level = $request->input('level');
+        $lyricId = $request->input('lyric_id');
+        $lyric = Lyric::findOrFail($lyricId);
+        $lyric->viewed += 1;
+        $lyric->save();
 
-        DB::beginTransaction();
-        try {
-            if (Auth::check()) {
-                Auth::user()->lyrics()->attach($lyricId, [
-                    'score' => $score,
-                    'level' => $level,
-                ]);
+        if ($request->has('score')) {
+            $score = $request->input('score');
+            DB::beginTransaction();
+            try {
+                if (Auth::check()) {
+                    Auth::user()->lyrics()->attach($lyricId, [
+                        'score' => $score,
+                        'level' => $level,
+                    ]);
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response('Submit failed', 500);
             }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response('Submit failed', 500);
         }
 
         return response('Submit success', 200);

@@ -9,6 +9,13 @@ class Lyric extends Eloquent
 {
     use Searchable;
 
+    protected $fillable = [
+        'title',
+        'artist',
+        'link_id',
+        'lyric',
+    ];
+
     public function users()
     {
         return $this->belongsToMany(User::class)->withTimestamps();

@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Auth;
 
-class StoreLyric extends FormRequest
+class UpdateLyric extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -32,11 +32,11 @@ class StoreLyric extends FormRequest
                 'bail',
                 'required',
                 'available',
-                Rule::unique('lyrics', 'link_id')->where(function ($query) {
+                Rule::unique('lyrics', 'link_id')->ignore($this->id)->where(function ($query) {
                     $query->where('user_id', Auth::id())->orWhere('published', 1);
                 }),
             ],
-            'lyric_file' => 'bail|required|file|mimes:txt,srt|max:500|is_srt_format',
+            'lyric_file' => 'bail|file|mimes:txt,srt|max:500|is_srt_format',
         ];
     }
 

@@ -19,7 +19,7 @@
     <div class="recommended">
         <div class="recommended-grids">
             <div class="recommended-info">
-                <h3>Add Lyrics</h3>
+                <h3>Edit Lyrics</h3>
             </div>
             {{-- @if (count($errors) > 0)
                 <div class="alert alert-danger">
@@ -32,8 +32,8 @@
             @endif --}}
             <div class="form-section">
                 {{ Form::open([
-                    'action' => 'Web\LyricController@store',
-                    'method' => 'POST',
+                    'url' => action('Web\LyricController@update', $lyric->id),
+                    'method' => 'PUT',
                     'class' => 'form form-create-lyrics form-horizontal',
                     'files' => 'true',
                 ]) }}
@@ -41,7 +41,7 @@
                         {{ Form::label('title', 'Title', [
                             'class' => 'control-label'
                         ]) }}
-                        {{ Form::text('title', '', [
+                        {{ Form::text('title', $lyric->title, [
                             'class' => 'form-control'
                         ]) }}
                         {{ Form::showErrField('title') }}
@@ -50,7 +50,7 @@
                         {{ Form::label('artist', 'Artist', [
                             'class' => 'control-label'
                         ]) }}
-                        {{ Form::text('artist', '', [
+                        {{ Form::text('artist', $lyric->artist, [
                             'class' => 'form-control'
                         ]) }}
                         {{ Form::showErrField('artist') }}
@@ -60,7 +60,7 @@
                             'class' => 'control-label'
                         ]) }}
                         {{-- <div class="input-group"> --}}
-                            {{ Form::text('yt_link', '', [
+                            {{ Form::text('yt_link', $ytLink, [
                                 'class' => 'form-control'
                             ]) }}
                             <!-- <span class="input-group-btn">
@@ -81,7 +81,7 @@
                         {{ Form::showErrField('lyric_file') }}
                     </div>
                     <div class="form-group">
-                        {{ Form::submit('Save', [
+                        {{ Form::submit('Update', [
                             'class' => 'btn btn-info btn-save-lyrics'
                         ]) }}
                         <a href="{{ action('Web\UserController@showLyrics' , Auth::id()) }}"

@@ -8,6 +8,7 @@
                 <h3>Lyrics by {{ $userName }}</h3>
             </div>
             @include('web.lyric._list')
+            <div class="clearfix"> </div>
         </div>
     </div>
 </div>

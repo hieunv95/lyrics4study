@@ -97,8 +97,13 @@ return [
 
     'custom' => [
         'yt_video_id' => [
-            'required' => 'The :attribute in this link is not available.',
-            'unique' => 'Lyrics of this :attribute has already been created or published.',
+            'required' => 'The :attribute link is required.',
+            'available' => 'The :attribute in this link is not available.',
+            'unique' => 'The lyrics of this :attribute has already been created or published.',
+        ],
+        'lyric_file' => [
+            'required' => 'The :attribute has not been chosen.',
+            'is_srt_format' => 'The format of :attribute is invalid.',
         ],
     ],
 
@@ -115,6 +120,7 @@ return [
 
     'attributes' => [
         'yt_video_id' => 'Youtube video',
+        'lyric_file' => 'lyric file',
     ],
 
 ];

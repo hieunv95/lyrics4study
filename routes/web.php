@@ -26,14 +26,19 @@ Route::group(['prefix' => 'lyrics'], function () {
     Route::get('play/{artist}/{title}/{id}/{level}', 'Web\LyricController@play');
     Route::group(['middleware' => 'auth'], function() {
         Route::get('create', 'Web\LyricController@create');
-        Route::post('save', 'Web\LyricController@save');
+        Route::post('store', 'Web\LyricController@store');
+        Route::get('/{id}/edit', 'Web\LyricController@edit');
+        Route::put('update/{id}', 'Web\LyricController@update');
+        Route::delete('delete/{id}', 'Web\LyricController@delete');
     });
 });
-Route::group(['prefix' => 'user', 'middleware' => 'auth'], function () {
-    Route::get('/history', 'Web\UserController@history');
-    Route::get('/detailHistory/{lyric_id}', 'Web\UserController@detailHistory');
+Route::group(['prefix' => 'user'], function () {
     Route::get('showlyrics/{user_id}', 'Web\UserController@showLyrics');
-    Route::post('saveScore', 'Web\UserController@saveScore');
+    Route::group(['middleware' => 'auth'], function () {
+        Route::get('/history', 'Web\UserController@history');
+        Route::get('/detailHistory/{lyric_id}', 'Web\UserController@detailHistory');
+        Route::post('saveScore', 'Web\UserController@saveScore');
+    });
 });
 
 Route::get('social/redirect/{provider}', 'Auth\SocialAuthController@redirect');

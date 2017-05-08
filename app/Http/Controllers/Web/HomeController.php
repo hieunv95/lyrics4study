@@ -37,17 +37,21 @@ class HomeController extends Controller
         $search_param = Request::get('search_param');
 
         if ($search_param == 'artist') {
-            $results = DB::table('lyrics')
-                ->where('artist', 'LIKE', "%$search%")
+            $results = Lyric::where('artist', 'LIKE', "%$search%")
+                //->where('published', 1)
                 ->get();
         } elseif ($search_param == 'title') {
-            $results = DB::table('lyrics')
-                ->where('title', 'LIKE', "%$search%")
+            $results = Lyric::where('title', 'LIKE', "%$search%")
+                //->where('published', 1)
                 ->get();
         } elseif ($search_param == 'lyrics') {
-            $results = Lyric::search($search)->get();
+            $results = Lyric::search($search)
+                //->where('published', 1)
+                ->get();
         } else {
-            $results = Lyric::search($search)->get();
+            $results = Lyric::search($search)
+                //->where('published', 1)
+                ->get();
             /*//Convert string to array by splitting space char
             $words = preg_split('/[\s]+/', $search, -1, PREG_SPLIT_NO_EMPTY);
             $wordsCount = count($words);
@@ -89,10 +93,11 @@ class HomeController extends Controller
     {
         //$term which jquery ui generated contains words user type
         $term = Request::get('term');
-        $queries = DB::table('lyrics')
-                ->where('title', 'LIKE', "%$term%")
-                ->orWhere('artist', 'LIKE', "%$term%")
-                ->take(5)->get();
+        $queries = Lyric::where('title', 'LIKE', "%$term%")
+            ->orWhere('artist', 'LIKE', "%$term%")
+            //->where('published', 1)
+            ->take(5)
+            ->get();
         foreach ($queries as $query) {
             $results[] = [
                 'id' => $query->id,

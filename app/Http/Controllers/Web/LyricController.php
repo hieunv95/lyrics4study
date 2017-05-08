@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Lyric;
 use Auth;
 use DB;
+use File;
 use App\Http\Requests\StoreLyric;
+use App\Http\Requests\UpdateLyric;
 
 class LyricController extends Controller
 {
@@ -21,9 +23,63 @@ class LyricController extends Controller
         return view('web.lyric.create');
     }
 
-    public function save(StoreLyric $request)
+    public function store(StoreLyric $request)
     {
-        return back()->withInput();
+        $input = $request->only('title', 'artist', 'yt_link', 'lyric_file');
+        $content = trim(File::get($request->file('lyric_file')));
+        $content .= "\r\n";
+
+        $lyric = new Lyric;
+        $lyric->title = $input['title'];
+        $lyric->artist = $input['artist'];
+        $lyric->link_id = parse_yturl($input['yt_link']);
+        $lyric->lyric = $content;
+        $lyric->user_id = Auth::id();
+        $lyric->save();
+
+       return redirect()->action('Web\UserController@showLyrics' , Auth::id());
+    }
+
+    public function edit($lyricId) {
+        $lyric = Lyric::findorFail($lyricId);
+        $ytLink = 'https://www.youtube.com/watch?v=' . $lyric->link_id;
+        return view('web.lyric.edit')->with([
+            'lyric' => $lyric,
+            'ytLink' => $ytLink,
+        ]);
+    }
+
+    public function update($lyricId, UpdateLyric $request) {
+        $lyric = Lyric::findorFail($lyricId);
+        $input = $request->only('title', 'artist', 'yt_link', 'lyric_file');
+        if ($request->hasfile('lyric_file')) {
+            $content = trim(File::get($request->file('lyric_file')));
+            $content .= "\r\n";
+            $lyric->lyric = $content;
+        }
+
+        $lyric->title = $input['title'];
+        $lyric->artist = $input['artist'];
+        $lyric->link_id = parse_yturl($input['yt_link']);
+        $lyric->save();
+
+        return redirect()->action('Web\UserController@showLyrics' , Auth::id());
+    }
+
+    public function delete($lyricId) {
+        $lyric = Lyric::findorFail($lyricId);
+
+        DB::beginTransaction();
+        try {
+            $lyric->users()->detach();
+            $lyric->delete();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+        }
+
+        return redirect()->action('Web\UserController@showLyrics' , Auth::id());
     }
 
     public function play($artist, $title, $id, $level)
@@ -45,23 +101,30 @@ class LyricController extends Controller
         //dd($sentences);
         $sentenceIndexes = range(0, count($sentences) - 1);
 
-        if ($level == 'karaoke') {
-            $rate = 0;
-            $level = 0;
-        } elseif($level == 'easy') {
-            $rate = 0.1;
-            $level = 1;
-        } else if ($level == 'medium') {
-            $rate = 0.25;
-            $level = 2;
-        } else if ($level == 'hard') {
-            $rate = 0.5;
-            $level = 3;
-        } else if ($level == 'expert') {
-            $rate = 1;
-            $level = 4;
-        } else {
-            abort('404');
+        switch($level) {
+            case 'karaoke':
+                $rate = 0;
+                $level = 0;
+                break;
+            case 'easy':
+                $rate = 0.1;
+                $level = 1;
+                break;
+            case 'medium':
+                $rate = 0.25;
+                $level = 2;
+                break;
+            case 'hard':
+                $rate = 0.5;
+                $level = 3;
+                break;
+            case 'expert':
+                $rate = 1;
+                $level = 4;
+                break;
+            default:
+                abort(404);
+                break;
         }
 
         $wordTotal = 0;

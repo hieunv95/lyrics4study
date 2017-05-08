@@ -6,7 +6,7 @@
         clear: both;
         width: 100%;
         position: relative;
-        padding-bottom: 56.25%;
+        padding-bottom: 46.25%;
         /*padding-top: 25px;*/
         /*height: 0;*/
     }
@@ -355,15 +355,16 @@
             }
         }
 
-        if (event.data == YT.PlayerState.ENDED && i++ == sentenceNumber && level > 0) {
-            score = (score > 0) ? score : 0;
-            $('.btn-repeat, .btn-skip').css('display', 'none');
-            $('.btn-result').css('display', 'block').click();
-            displayResult();
-
+        if (event.data == YT.PlayerState.ENDED && i++ == sentenceNumber) {
             var lyricForm = $('.lyric-meta-form');
             var data = lyricForm.serializeArray();
-            data.push({name: 'score', value: score});
+            if (level > 0) {
+                score = (score > 0) ? score : 0;
+                $('.btn-repeat, .btn-skip').css('display', 'none');
+                $('.btn-result').css('display', 'block').click();
+                displayResult();
+                data.push({name: 'score', value: score});
+            }
             $.post(lyricForm.attr('action'), data);
         }
     }

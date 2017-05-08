@@ -13,12 +13,12 @@
                     <img src="https://i3.ytimg.com/vi/{{ $lyric->link_id }}/hqdefault.jpg"
                     alt="{{ $lyric->title }}-{{ $lyric->artist }}" />
                 </a>
-                <div class="time">
+                {{-- <div class="time">
                     <p>3:04</p>
                 </div>
                 <div class="clck">
                     <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-                </div>
+                </div> --}}
             </div>
             <div class="resent-grid-info recommended-grid-info">
                 <h3>
@@ -119,7 +119,7 @@ $(function() {
         auto: true,
         pager: false,
         nav: true,
-        speed: 500,
+        speed: 1000,
         namespace: "callbacks",
         before: function() {
             $('.events').append("<li>before event fired.</li>");

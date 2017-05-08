@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Form;
+use Illuminate\Support\Facades\Validator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +15,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Form::component('showErrClass', 'components.form.error_class', ['name', 'value', 'attributes']);
+        Form::component('showErrField', 'components.form.error_field', ['name', 'value', 'attributes']);
+
+        Validator::extend('available', function ($attribute, $value, $parameters, $validator) {
+            return $value !== false;
+        });
+        Validator::extend('is_srt_format', function ($attribute, $value, $parameters, $validator) {
+
+            return isSRTFormat(file($value)) === true;
+        });
     }
 
     /**

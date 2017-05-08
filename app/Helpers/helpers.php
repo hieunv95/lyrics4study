@@ -134,3 +134,80 @@ function parse_yturl($url)
 
     return false;
 }
+
+function isSRTFormat($file) {
+
+    define('SRT_STATE_SUBNUMBER', 0);
+    define('SRT_STATE_TIME',      1);
+    define('SRT_STATE_TEXT',      2);
+    define('SRT_STATE_BLANK',     3);
+
+    $state = SRT_STATE_SUBNUMBER;
+    $starts = array();
+    $ends = array();
+    $i = 0; //Index of array starts[] and ends[].
+    $j = 1; //Line index of file.
+
+    $lines = '';
+    foreach($file as $line) {
+        $lines .= $line;
+    }
+    $lines = trim($lines);
+    $lines .= "\r\n";
+    $lines = preg_split("/((\r?\n)|(\r\n?))/", $lines);
+
+    foreach ($lines as $line) {
+        switch ($state) {
+            case SRT_STATE_SUBNUMBER:
+                $subNumber = trim($line);
+                if (isNotNegativeInteger($subNumber)) {
+                    $state = SRT_STATE_TIME;
+                } else {
+                    return $j;
+                }
+                break;
+
+            case SRT_STATE_TIME:
+                $subTime = trim($line);
+                list($start, $end) = array_pad(explode(' --> ', $subTime, 2), 2, null);
+                $starts[$i] = isTimestamp($start);
+                $ends[$i] = isTimestamp($end);
+                if ($starts[$i] !== false && $ends[$i] !== false
+                    && $starts[$i] < $ends[$i] && ($i == 0 || $ends[$i - 1] <= $starts[$i])) {
+                    $i++;
+                    $state = SRT_STATE_TEXT;
+                } else {
+                    return $j;
+                }
+
+                break;
+            case SRT_STATE_TEXT:
+                if (trim($line) == '') {
+                    $state = SRT_STATE_SUBNUMBER;
+                }
+                break;
+        }
+        $j++;
+    }
+
+    return true;
+}
+
+function isNotNegativeInteger($number) {
+    return (is_numeric($number) && $number >= 0 && $number == round($number, 0))
+        ? true
+        : false;
+}
+
+function isTimestamp($time) {
+    list($hour, $minute, $second) = array_pad(explode(':', $time, 3), 3, null);
+    if (isNotNegativeInteger($hour) && $hour < 100 && isNotNegativeInteger($minute) && $minute < 100 && $second ) {
+        list($second, $millisecond) = array_pad(explode(',', $second, 2), 2, null);
+        if (isNotNegativeInteger($second) && $second < 100 && isNotNegativeInteger($millisecond)
+                && $millisecond < 1000) {
+            return $hour * 3600 + $minute * 60 + $second + $millisecond / 1000;
+        }
+    }
+
+    return false;
+}
