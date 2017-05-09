@@ -41,6 +41,10 @@ License URL: http://creativecommons.org/licenses/by/3.0/
         outline: none;
         font-weight: bold;
     }
+    .glyphicon-lyrics {
+        margin: 0 2em 0 0;
+        font-size: 16px !important;
+    }
 </style>
 <script>
         window.Laravel = <?php echo json_encode([
@@ -72,6 +76,16 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <script src="/js/laroute.js"></script>
 <script type="text/javascript">
     $(document).ready(function (e) {
+        var selector = '.nav li';
+        var loc = window.location.href.split('/');
+        var page = loc[loc.length - 1];
+        $('ul.nav-sidebar a').each(function (i) {
+            var href = $(this).attr('href');
+            if (href.indexOf(page) !== -1) {
+                $('ul.nav li.active').removeClass('active');
+                $(this).parent().addClass('active');
+            }
+        });
         window.fbAsyncInit = function() {
             FB.init({
               appId      : 1226236657472789,

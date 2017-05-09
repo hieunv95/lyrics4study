@@ -150,11 +150,12 @@
 
                         <ul class="dropdown-menu" role="menu">
                             <li>
-                                <a href="{{ action('Web\LyricController@create') }}">Add Lyrics</a>
-                                <a href="{{ action('Web\UserController@showLyrics', Auth::id()) }}">My Lyrics</a>
+                                {{-- <a href="{{ action('Web\LyricController@create') }}">Add Lyrics</a>
+                                <a href="{{ action('Web\UserController@showLyrics', Auth::id()) }}">My Lyrics</a> --}}
                                 <a href="{{ url('/logout') }}"
-                                   onclick="event.preventDefault();
-                                 document.getElementById('logout-form').submit();">
+                                    onclick="event.preventDefault();
+                                    document.getElementById('logout-form').submit();">
+                                    <span class="glyphicon glyphicon-log-out"></span>
                                     Logout
                                 </a>
 

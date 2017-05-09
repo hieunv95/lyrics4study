@@ -26,23 +26,24 @@ class LyricController extends Controller
     public function store(StoreLyric $request)
     {
         $input = $request->only('title', 'artist', 'yt_link', 'lyric_file');
-        $content = trim(File::get($request->file('lyric_file')));
-        $content .= "\r\n";
-
         $lyric = new Lyric;
         $lyric->title = $input['title'];
         $lyric->artist = $input['artist'];
         $lyric->link_id = parse_yturl($input['yt_link']);
-        $lyric->lyric = $content;
+        $lyric->lyric = $request->file('lyric_file');
         $lyric->user_id = Auth::id();
         $lyric->save();
 
-       return redirect()->action('Web\UserController@showLyrics' , Auth::id());
+        return redirect()
+            ->action('Web\UserController@showLyrics' , Auth::id())
+            ->with('status', 'Lyric created!');
     }
 
     public function edit($lyricId) {
         $lyric = Lyric::findorFail($lyricId);
+        $this->authorize('update', $lyric);
         $ytLink = 'https://www.youtube.com/watch?v=' . $lyric->link_id;
+
         return view('web.lyric.edit')->with([
             'lyric' => $lyric,
             'ytLink' => $ytLink,
@@ -53,9 +54,7 @@ class LyricController extends Controller
         $lyric = Lyric::findorFail($lyricId);
         $input = $request->only('title', 'artist', 'yt_link', 'lyric_file');
         if ($request->hasfile('lyric_file')) {
-            $content = trim(File::get($request->file('lyric_file')));
-            $content .= "\r\n";
-            $lyric->lyric = $content;
+            $lyric->lyric = $request->file('lyric_file');
         }
 
         $lyric->title = $input['title'];
@@ -63,11 +62,14 @@ class LyricController extends Controller
         $lyric->link_id = parse_yturl($input['yt_link']);
         $lyric->save();
 
-        return redirect()->action('Web\UserController@showLyrics' , Auth::id());
+        return redirect()
+            ->action('Web\UserController@showLyrics' , Auth::id())
+            ->with('status', 'Lyric updated!');
     }
 
     public function delete($lyricId) {
         $lyric = Lyric::findorFail($lyricId);
+        $this->authorize('delete', $lyric);
 
         DB::beginTransaction();
         try {
@@ -79,7 +81,9 @@ class LyricController extends Controller
             DB::rollBack();
         }
 
-        return redirect()->action('Web\UserController@showLyrics' , Auth::id());
+        return redirect()
+            ->action('Web\UserController@showLyrics' , Auth::id())
+            ->with('status', 'Lyric deleted!');
     }
 
     public function play($artist, $title, $id, $level)
@@ -98,7 +102,6 @@ class LyricController extends Controller
         //$s = preg_split('/[\s]+/', $s, -1, PREG_SPLIT_NO_EMPTY);
 
         $sentences = convertSRTFormatToArray($initialLyric);
-        //dd($sentences);
         $sentenceIndexes = range(0, count($sentences) - 1);
 
         switch($level) {

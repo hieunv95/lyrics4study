@@ -19,6 +19,8 @@ Auth::routes();
 
 Route::get('home', 'Web\HomeController@index');
 Route::get('/', 'Web\HomeController@index');
+Route::get('/top-lyrics', 'Web\HomeController@showTopLyrics');
+Route::get('/new-lyrics', 'Web\HomeController@showNewLyrics');
 Route::group(['prefix' => 'lyrics'], function () {
     Route::get('search', 'Web\HomeController@search');
     Route::get('autocomplete', 'Web\HomeController@autocomplete');

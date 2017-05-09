@@ -1,6 +1,6 @@
 <?php
 
-function paginateCollection($collection, $perPage, $pageName = 'page', $fragment = null)
+function paginateCollection($collection, $perPage = 1, $pageName = 'page', $fragment = null)
 {
     $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage($pageName);
     $currentPageItems = $collection->slice(($currentPage - 1) * $perPage, $perPage);
@@ -33,8 +33,9 @@ function convertSRTFormatToArray($lines) {
     $state = SRT_STATE_SUBNUMBER;
     $subWords = '';
     $subTime = '';
+    $lines = preg_split("/((\r?\n)|(\r\n?))/", $lines);
 
-    foreach(preg_split("/((\r?\n)|(\r\n?))/", $lines) as $line) {
+    foreach($lines as $line) {
         switch($state) {
             case SRT_STATE_SUBNUMBER:
                 $state = SRT_STATE_TIME;
@@ -51,6 +52,8 @@ function convertSRTFormatToArray($lines) {
                     list($startTime, $endTime) = array_pad(explode(' --> ', $subTime, 2), 2, null);
                     $sub->start = toMilliseconds($startTime);
                     $sub->end = toMilliseconds($endTime);
+                    $subWords = preg_replace('~\([^()]*\)+~', '', $subWords);
+                    $subWords = preg_replace('~\[[^\]]*\]+~', '', $subWords);
                     $subWords = preg_replace('/^\s+|\s+$|\s+(?=\s)/', '', $subWords);
                     $subWords = preg_replace('/[^\p{L}\p{N}\s\']/u', '', $subWords);
                     $charNumber = strlen(preg_replace('/\s+/', '', $subWords));
@@ -70,7 +73,7 @@ function convertSRTFormatToArray($lines) {
 
                     $subs[] = $sub;
                 } else {
-                    $subWords .= $line;
+                    $subWords .= $line . " ";
                 }
                 break;
         }
@@ -148,12 +151,7 @@ function isSRTFormat($file) {
     $i = 0; //Index of array starts[] and ends[].
     $j = 1; //Line index of file.
 
-    $lines = '';
-    foreach($file as $line) {
-        $lines .= $line;
-    }
-    $lines = trim($lines);
-    $lines .= "\r\n";
+    $lines = sanitizeLyricsFile($file);
     $lines = preg_split("/((\r?\n)|(\r\n?))/", $lines);
 
     foreach ($lines as $line) {
@@ -210,4 +208,25 @@ function isTimestamp($time) {
     }
 
     return false;
+}
+
+function getLyricsFromFile($fileName) {
+    return storage_path('app/public/lyricsSamples/' . $fileName);
+}
+
+//Remove UTF8 Bom
+function remove_utf8_bom($text)
+{
+    $bom = pack('H*','EFBBBF');
+    $text = preg_replace("/^$bom/", '', $text);
+
+    return $text;
+}
+
+//Sanitize lyrics file
+function sanitizeLyricsFile($file) {
+    $content = trim(file_get_contents($file));
+    $content .= "\r\n";
+
+    return remove_utf8_bom($content);
 }

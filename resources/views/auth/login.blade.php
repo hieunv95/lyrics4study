@@ -61,6 +61,19 @@
                             </div>
                         </div>
                     </form>
+                    <div class="col-md-4 col-md-offset-4">
+                        Login with :
+                        <a href="{{ action('Auth\SocialAuthController@redirect', [
+                            'provider' => config('custom.provider.facebook')
+                            ]) }}" class="btn btn-social-icon btn-facebook">
+                            <span class="fa fa-facebook"></span>
+                        </a>
+                        <a href="{{ action('Auth\SocialAuthController@redirect', [
+                            'provider' => config('custom.provider.google')
+                            ]) }}" class="btn btn-social-icon btn-google">
+                            <span class="fa fa-google"></span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

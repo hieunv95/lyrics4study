@@ -1,9 +1,12 @@
-{{-- {{ dd($list) }} --}}
 @push('css')
-    <link rel="stylesheet" type="text/css"
-        href="{{ asset('/bower_components/sweetalert/dist/sweetalert.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('/bower_components/sweetalert/dist/sweetalert.css') }}">
+    <style type="text/css">
+        .recommended-grids {
+            margin: 0em 0;
+        }
+    </style>
 @endpush
-@foreach ($list as $lyric)
+@foreach ($lyrics as $lyric)
 <div class="col-md-3 resent-grid recommended-grid">
     <div class="resent-grid-img recommended-grid-img">
         <a href="{{ route('show', ['id' => $lyric->id,'title' => str_slug($lyric->title,'-'),
@@ -24,7 +27,14 @@
                 <li><a href="{{ route('show', ['id' => $lyric->id,'title' => str_slug($lyric->title,'-'),
                      'artist' => str_slug($lyric->artist,'-')]) }}"
                      class="title title-info">{{ $lyric->title }}</a></li>
-                <li><a href="#" class="artist artist-info">{{ $lyric->artist }}</a></li>
+                <li>
+                    <a class="artist artist-info" href="{{ action("Web\HomeController@search", [
+                        'q' => $lyric->artist,
+                        'search_param' => 'artist',
+                    ]) }}">
+                        {{ $lyric->artist }}
+                    </a>
+                </li>
             </ul>
         </h5>
         <ul>
@@ -56,6 +66,8 @@
     </div>
 </div>
 @endforeach
+<div class="clearfix"> </div>
+{{ $lyrics->appends(Request::only('q', 'search_param'))->links() }}
 @push('js')
     <script src="{{ asset('/bower_components/sweetalert/dist/sweetalert.min.js') }}"></script>
     <script>

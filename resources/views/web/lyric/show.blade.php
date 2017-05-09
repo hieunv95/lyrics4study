@@ -38,8 +38,6 @@
         color: white;
         font-weight: bold;
         background-color: #5bc0de;
-    }
-    .btn-result {
         display: none;
     }
     .highlight-word {
@@ -132,8 +130,8 @@
         complete[k] = 0;
     }
     var level = $('.lyric-meta-form .level').val();
-    if (level == 0) {
-        $('.btn-repeat, .btn-skip').css('display', 'none');
+    if (level > 0) {
+        $('.btn-repeat, .btn-skip').css('display', 'inline-block');
     }
 
     var tag = document.createElement('script');
@@ -148,14 +146,14 @@
             videoId: $('#video-player').data('videoid'),
             playerVars: {
                 'autoplay' : 0,
-                'controls' : 2,
+                'controls' : 1,
                 'autohide' : 1,
                 'rel': 0,
                 'showinfo' : 0,
                 'fs': 0,
-                'disablekb' : 0,
+                'disablekb' : 1,
                 'iv_load_policy': 3,
-                'start' : 9,
+                //'start' : 9,
             },
             events: {
                 'onReady': onPlayerReady,
@@ -421,7 +419,7 @@
                 }
             }
         } else {
-            console.log(player.getCurrentTime());
+            //console.log(player.getCurrentTime());
             paused = replay = 0;
             complete[i] = 1;
             if (++i < sentenceNumber) {

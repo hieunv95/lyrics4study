@@ -15,14 +15,20 @@ class UserController extends Controller
     public function history()
     {
         return view('web.user.history')->with([
-            'lyrics' => paginateCollection(Auth::user()->lyrics()->get()->groupBy('id'), 10),
+            'lyrics' => paginateCollection(Auth::user()
+                ->lyrics()
+                ->get()
+                ->groupBy('id'), config('custom.paginate.history')),
         ]);
     }
 
     public function detailHistory($lyricId)
     {
         return view('web.user.detail_history')->with([
-            'lyrics' => Auth::user()->lyrics()->where('lyrics.id', $lyricId)->paginate(20),
+            'lyrics' => Auth::user()
+                ->lyrics()
+                ->where('lyrics.id', $lyricId)
+                ->paginate(config('custom.paginate.detail_history')),
         ]);
     }
 
@@ -30,7 +36,8 @@ class UserController extends Controller
     {
         $user = User::findOrFail($userId);
         return view('web.user.show_lyrics')->with([
-            'list' => $user->lyrics_created()->paginate(20),
+            'lyrics' => $user->lyrics_created()->orderBy('updated_at', 'desc')
+                ->paginate(config('custom.paginate.lyrics')),
             'userName' => $user->name,
         ]);
     }

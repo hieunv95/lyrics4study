@@ -12,6 +12,7 @@
 
     <!-- Styles -->
     <link href="/css/app.css" rel="stylesheet">
+    <link href="/css/bootstrap-social.css" rel="stylesheet">
 
     <!-- Scripts -->
     <script>
@@ -85,5 +86,6 @@
 
     <!-- Scripts -->
     <script src="/js/app.js"></script>
+    <script src="https://use.fontawesome.com/48d8ab8fc4.js"></script>
 </body>
 </html>

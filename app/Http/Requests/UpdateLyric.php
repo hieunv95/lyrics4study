@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Auth;
+use App\Models\Lyric;
 
 class UpdateLyric extends FormRequest
 {
@@ -15,7 +16,9 @@ class UpdateLyric extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        $lyric = Lyric::find($this->route('id'));
+
+        return $lyric && $this->user()->can('update', $lyric);
     }
 
     /**
@@ -32,7 +35,7 @@ class UpdateLyric extends FormRequest
                 'bail',
                 'required',
                 'available',
-                Rule::unique('lyrics', 'link_id')->ignore($this->id)->where(function ($query) {
+                Rule::unique('lyrics', 'link_id')->ignore($this->route('id'))->where(function ($query) {
                     $query->where('user_id', Auth::id())->orWhere('published', 1);
                 }),
             ],

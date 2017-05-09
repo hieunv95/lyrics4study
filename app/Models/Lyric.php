@@ -30,4 +30,9 @@ class Lyric extends Eloquent
     {
         return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->toDayDateTimeString();
     }
+
+    public function setLyricAttribute($value)
+    {
+        $this->attributes['lyric'] = sanitizeLyricsFile($value);
+    }
 }

@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
         });
         Validator::extend('is_srt_format', function ($attribute, $value, $parameters, $validator) {
 
-            return isSRTFormat(file($value)) === true;
+            return isSRTFormat($value) === true;
         });
     }
 

@@ -14,57 +14,80 @@ class LyricsTableSeeder extends Seeder
     public function run()
     {
         Lyric::truncate();
-        $lyricsFile = storage_path('app\public\lyricsSample.txt');
-        $lrc = explode("/", File::get($lyricsFile));
+        $userId = 12;
 
         $lyrics = [
         [
-            'title' => "When You Believe",
-            'artist' => 'Mariah Carey, Whitney Houston',
-            'link_id' => 'LKaXY4IdZ40',
-            'lyric' => $lrc[0],
-          ],
-          [
-            'title' => "I Will Always Love You",
-            'artist' => 'Whitney Houston',
-            'link_id' => '3JWTaaS7LdU',
-            'lyric' => $lrc[1],
-          ],
-          [
-            'title' => "My Heart Will Go On",
-            'artist' => 'Celine Dion',
-            'link_id' => 'WNIPqafd4As',
-            'lyric' => $lrc[2],
-          ],
-          [
-            'title' => "Someone Like You",
+            'title' => "Hello",
             'artist' => 'Adele',
-            'link_id' => 'hLQl3WQQoQ0',
-            'lyric' => $lrc[3],
+            'link_id' => 'YQHsXMglC9A',
+            'lyric' => getLyricsFromFile('Hello-Adele.srt'),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
           ],
           [
-            'title' => "Chandelier",
-            'artist' => 'Sia',
-            'link_id' => '2vjPBrBU-TM',
-            'lyric' => $lrc[4],
+            'title' => "The Lazy Song",
+            'artist' => 'Bruno Mars',
+            'link_id' => 'fLexgOxsZu0',
+            'lyric' => getLyricsFromFile('Bruno Mars-The Lazy Song.srt'),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
           ],
           [
-            'title' => 'My Love',
+            'title' => "I'm Yours",
+            'artist' => 'Jason Mraz',
+            'link_id' => 'EkHTsc9PU2A',
+            'lyric' => getLyricsFromFile("Jason Mraz - I'm yours.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
+          ],
+          [
+            'title' => "Bad Day",
+            'artist' => 'Daniel Powter',
+            'link_id' => 'gH476CxJxfg',
+            'lyric' => getLyricsFromFile("Daniel Powter - Bad Day.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
+          ],
+          [
+            'title' => "Hero",
+            'artist' => 'Mariah Carey',
+            'link_id' => '0IA3ZvCkRkQ',
+            'lyric' => getLyricsFromFile("Mariah Carey - Hero.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
+          ],
+          [
+            'title' => 'Hurt',
+            'artist' => 'Christina Aguilera',
+            'link_id' => 'wwCykGDEp7M',
+            'lyric' => getLyricsFromFile("Christina Aguilera - Hurt.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
+          ],
+          [
+            'title' => "I Have A Dream",
             'artist' => 'Westlife',
-            'link_id' => 'ulOb9gIGGd0',
-            'lyric' => $lrc[5],
+            'link_id' => '_HkL8GuU9_0',
+            'lyric' => getLyricsFromFile("Westlife - I Have A Dream.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
           ],
           [
-            'title' => "If I ain't got you",
-            'artist' => 'Alicia Keys',
-            'link_id' => 'Ju8Hr50Ckwk',
-            'lyric' => $lrc[6],
+            'title' => "Earth Song",
+            'artist' => 'Michael Jackson',
+            'link_id' => 'XAi3VTSdTxU',
+            'lyric' => getLyricsFromFile("Earth song - Michael Jackson.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
           ],
           [
-            'title' => "All of Me",
-            'artist' => 'John Legend',
-            'link_id' => '450p7goxZqg',
-            'lyric' => $lrc[7],
+            'title' => "Heal The World",
+            'artist' => 'Michael Jackson',
+            'link_id' => 'BWf-eARnf6U',
+            'lyric' => getLyricsFromFile("Michael Jackson - Heal The World.srt"),
+            'user_id' => $userId,
+            'viewed' => rand(10, 100),
           ],
         ];
 
