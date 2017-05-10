@@ -88,15 +88,22 @@ class HomeController extends Controller
     {
         //$term which jquery ui generated contains words user type
         $term = $request->input('term');
-        $queries = Lyric::where('title', 'LIKE', "%$term%")
+        /*$lyrics = Lyric::where('title', 'LIKE', "%$term%")
             ->orWhere('artist', 'LIKE', "%$term%")
             //->where('published', 1)
             ->take(5)
-            ->get();
-        foreach ($queries as $query) {
+            ->get();*/
+        $lyrics = Lyric::search($term)->take(10)->get();
+        $results = array();
+        foreach ($lyrics as $lyric) {
             $results[] = [
-                'id' => $query->id,
-                'value' => $query->title.' '.$query->artist,
+                'id' => $lyric->id,
+                'value' => $lyric->title . ' - '. $lyric->artist,
+                'href' => action('Web\LyricController@show', [
+                    'artist' => $lyric->artist,
+                    'title' => $lyric->title,
+                    'id' => $lyric->id,
+                ]),
             ];
         }
 

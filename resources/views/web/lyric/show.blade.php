@@ -6,7 +6,7 @@
         clear: both;
         width: 100%;
         position: relative;
-        padding-bottom: 46.25%;
+        padding-bottom: 40%;
         /*padding-top: 25px;*/
         /*height: 0;*/
     }
@@ -15,7 +15,7 @@
         /*top: 0;*/
         left: 0;
         width: 100%;
-        height: 70%;
+        height: 85%;
     }
     .lyric-player {
         font-size: large;

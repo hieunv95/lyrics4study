@@ -45,6 +45,9 @@ License URL: http://creativecommons.org/licenses/by/3.0/
         margin: 0 2em 0 0;
         font-size: 16px !important;
     }
+    .ui-autocomplete {
+        z-index: 1031 !important;
+    }
 </style>
 <script>
         window.Laravel = <?php echo json_encode([
@@ -109,9 +112,17 @@ License URL: http://creativecommons.org/licenses/by/3.0/
             source: "{{ action('Web\HomeController@autocomplete') }}",
             minLength: 3,
             select: function (event, ui) {
-                $('#q').val(ui.item.value);
+                //$('#q').val(ui.item.value);
+                window.location.href = ui.item.href;
             }
         });
+/*        .autocomplete( "instance" )._renderItem = function( ul, item ) {
+            return $( "<li>" )
+            .append( "<div>" + item.href + "</div>" )
+                // .append( "<a href='" + item.href + "'></a><br>" )
+                .appendTo( ul );
+        };*/
+
         $('.search-panel .dropdown-menu').find('a').click(function (e) {
             e.preventDefault();
             var param = $(this).attr("href").replace("#","");
