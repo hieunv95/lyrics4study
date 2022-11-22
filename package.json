@@ -1,4 +1,9 @@
 {
+  "engines": {
+    "node": "~6.11.2",
+    "npm": "~3.10.10",
+    "yarn": "~1.22.19"
+  },
   "private": true,
   "scripts": {
     "prod": "gulp --production",
