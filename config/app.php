@@ -179,7 +179,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
-        Lord\Laroute\LarouteServiceProvider::class,
+        // Lord\Laroute\LarouteServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
 
     ],
